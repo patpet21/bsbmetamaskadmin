@@ -1,0 +1,49 @@
+import { useState } from 'react';
+import { useCart } from '../contexts/CartContext';
+import { Button } from '@/components/ui/button';
+import { ShoppingCart, Wallet } from 'lucide-react';
+
+interface HeaderProps {
+  onOpenCart: () => void;
+  onConnectWallet: () => void;
+  isWalletConnected: boolean;
+  walletAddress?: string;
+}
+
+export default function Header({ onOpenCart, onConnectWallet, isWalletConnected, walletAddress }: HeaderProps) {
+  const { state } = useCart();
+
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  return (
+    <header className="bg-white shadow-sm sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold text-gray-900">Best Sicily Bottega</h1>
+            <span className="ml-2 text-sm text-gray-500">Authentic Italian Cuisine</span>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button
+              onClick={onOpenCart}
+              className="relative bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]"
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Cart ({state.totalItems})
+            </Button>
+            <Button
+              onClick={onConnectWallet}
+              variant="outline"
+              className="text-gray-700 hover:bg-gray-100"
+            >
+              <Wallet className="w-4 h-4 mr-2" />
+              {isWalletConnected ? formatAddress(walletAddress || '') : 'Connect Wallet'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
