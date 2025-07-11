@@ -1,0 +1,145 @@
+Build a full-stack food delivery web app called Best Sicily Bottega, similar to Uber Eats, using:
+
+Frontend: React + TailwindCSS
+
+Backend: Node.js (Express or serverless functions)
+
+Database: NocoDB with this exact schema below
+
+Crypto payment support: PRDX and USDC on Base mainnet
+
+📊 NocoDB DATABASE STRUCTURE (4 Tables)
+1. Menu table (Menu items)
+Field	Type	Notes
+id	Number	Auto-generated
+name	Text	Name of the dish
+description	Long Text	Description
+price	Number	USD price
+image_url	URL	Product image
+available	Checkbox	True if visible
+categories	Relation	Link to Categories (many-to-one)
+extras	Relation	Link to Extras (many-to-many)
+Orders	Relation	Linked orders
+
+2. Extras table (Add-ons)
+Field	Type	Notes
+id	Number	Auto
+name	Text	Add-on name (e.g., Mozzarella)
+price	Number	USD price
+available	Checkbox	Only if selectable
+Menu	Relation	Linked dishes (many-to-many)
+Orders	Relation	Linked orders
+
+3. Orders table
+Field	Type	Notes
+id	Number	Auto
+name	Text	Customer name
+email	Email	Customer email
+phone	Phone	Customer phone
+note	Long text	Optional comment
+status	Text	pending / confirmed / rejected
+paid	Boolean	True if payment successful
+tx_id	Text	Hash of transaction
+total	Number	USD total
+menu_items	Relation	Selected items
+extras	Relation	Selected extras
+created_at	Timestamp	Auto
+
+4. Categories table
+Field	Type	Notes
+id	Number	Auto
+name	Text	Category name (Pizza, Pasta...)
+icon	Text	Emoji icon
+Menu	Relation	Related dishes
+
+🎯 App Features & UX
+✅ Menu Page
+Group dishes by category (Pizza, Pasta, Dolci, etc.)
+
+Each dish card must show:
+
+Image, name, description, price in $
+
+"Add" button to open modal for:
+
+Quantity selection
+
+Select available Extras (scrollable if long)
+
+Dynamic price update
+
+✅ Cart Page
+Shows selected dishes, quantities, extras
+
+Auto-calculates total in USD
+
+Crypto payment options:
+
+PRDX or USDC
+
+User selects token and connects wallet (MetaMask)
+
+Button sends transaction to recipient
+
+On success, shows tx hash and order summary
+
+🔐 CRYPTO CONFIGURATION (Base Mainnet)
+Use ethers.js or viem for EVM wallet connection & payments.
+
+🎯 Tokens
+PRDX (18 decimals)
+
+ts
+Copia
+Modifica
+const PRDX_TOKEN = {
+  address: '0x61dd008f1582631aa68645ff92a1a5ecaedbed19',
+  decimals: 18,
+  symbol: 'PRDX',
+};
+USDC (6 decimals)
+
+ts
+Copia
+Modifica
+const USDC_TOKEN = {
+  address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+  decimals: 6,
+  symbol: 'USDC',
+};
+📥 Recipient Address
+ts
+Copia
+Modifica
+const RECIPIENT_ADDRESS = '0x7fDECF16574bd21Fd5cce60B701D01A6F83826ab';
+🧠 Notes
+App must be in English
+
+Prices always in USD ($)
+
+Extras must be shown only for relevant products (e.g., mozzarella for pizza, not desserts)
+
+Extras modal must be scrollable if needed
+
+Payment logic must respect token decimals
+
+After payment, store data in NocoDB Orders table
+
+Do NOT break existing crypto payment logic
+
+🧱 Stack Suggestions
+vite + react + tailwindcss
+
+ethers.js or viem + wagmi for wallet
+
+REST calls to NocoDB API
+
+Store cart state locally in React context or Zustand
+
+Let me know if you need to generate:
+
+Menu UI scaffold
+
+working crypto payment button in React
+
+NocoDB API wrapper functions
