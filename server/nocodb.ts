@@ -12,8 +12,8 @@ export class NocoDBClient {
 
   constructor() {
     this.baseURL = 'https://app.nocodb.com';
-    this.token = 'h3BEWAoqurYy1IRvScqBQ1pPGLZrNSmFn0vDXEE8';
-    this.projectId = 'pf5ksg4e5zqgn89';
+    this.token = process.env.NOCODB_TOKEN || 'h3BEWAoqurYy1IRvScqBQ1pPGLZrNSmFn0vDXEE8';
+    this.projectId = process.env.NOCODB_PROJECT_ID || 'pf5ksg4e5zqgn89';
     this.tableIds = {
       menu: 'mmrv37h1hbu2hl6',
       extras: 'mk1ufwpu8salnvx',
@@ -25,16 +25,17 @@ export class NocoDBClient {
       baseURL: this.baseURL,
       tokenPrefix: this.token.substring(0, 10) + '...',
       projectId: this.projectId,
-      workspaceId: 'w3a29qs2'
+      workspaceId: process.env.NOCODB_WORKSPACE_ID || 'w3a29qs2'
     });
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
-    const response = await fetch(`${this.baseURL}${endpoint}?workspace_id=w3a29qs2`, {
+    const response = await fetch(`${this.baseURL}${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
         'xc-token': this.token,
+        'xc-workspace-id': process.env.NOCODB_WORKSPACE_ID || 'w3a29qs2',
         ...options.headers,
       },
     });
@@ -50,7 +51,8 @@ export class NocoDBClient {
 
   async getMenuItems() {
     try {
-      const endpoint = `/api/v2/tables/${this.tableIds.menu}/records`;
+      const workspaceId = process.env.NOCODB_WORKSPACE_ID || 'w3a29qs2';
+      const endpoint = `/api/v2/workspaces/${workspaceId}/projects/${this.projectId}/tables/${this.tableIds.menu}/records`;
       console.log('NocoDB Menu endpoint:', `${this.baseURL}${endpoint}`);
       const response = await this.request(endpoint);
       return response.list || response;
@@ -62,7 +64,8 @@ export class NocoDBClient {
 
   async getCategories() {
     try {
-      const endpoint = `/api/v2/tables/${this.tableIds.categories}/records`;
+      const workspaceId = process.env.NOCODB_WORKSPACE_ID || 'w3a29qs2';
+      const endpoint = `/api/v2/workspaces/${workspaceId}/projects/${this.projectId}/tables/${this.tableIds.categories}/records`;
       console.log('NocoDB Categories endpoint:', `${this.baseURL}${endpoint}`);
       const response = await this.request(endpoint);
       return response.list || response;
@@ -74,7 +77,8 @@ export class NocoDBClient {
 
   async getExtras() {
     try {
-      const endpoint = `/api/v2/tables/${this.tableIds.extras}/records`;
+      const workspaceId = process.env.NOCODB_WORKSPACE_ID || 'w3a29qs2';
+      const endpoint = `/api/v2/workspaces/${workspaceId}/projects/${this.projectId}/tables/${this.tableIds.extras}/records`;
       console.log('NocoDB Extras endpoint:', `${this.baseURL}${endpoint}`);
       const response = await this.request(endpoint);
       return response.list || response;
@@ -86,7 +90,8 @@ export class NocoDBClient {
 
   async createOrder(orderData: any) {
     try {
-      const response = await this.request(`/api/v2/tables/${this.tableIds.orders}/records`, {
+      const workspaceId = process.env.NOCODB_WORKSPACE_ID || 'w3a29qs2';
+      const response = await this.request(`/api/v2/workspaces/${workspaceId}/projects/${this.projectId}/tables/${this.tableIds.orders}/records`, {
         method: 'POST',
         body: JSON.stringify(orderData),
       });
@@ -99,7 +104,8 @@ export class NocoDBClient {
 
   async updateOrder(orderId: number, updates: any) {
     try {
-      const response = await this.request(`/api/v2/tables/${this.tableIds.orders}/records/${orderId}`, {
+      const workspaceId = process.env.NOCODB_WORKSPACE_ID || 'w3a29qs2';
+      const response = await this.request(`/api/v2/workspaces/${workspaceId}/projects/${this.projectId}/tables/${this.tableIds.orders}/records/${orderId}`, {
         method: 'PATCH',
         body: JSON.stringify(updates),
       });

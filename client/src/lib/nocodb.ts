@@ -28,6 +28,7 @@ export class NocoDBClient {
       headers: {
         'Content-Type': 'application/json',
         'xc-token': this.token,
+        'xc-workspace-id': 'w3a29qs2',
         ...options.headers,
       },
     });

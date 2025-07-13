@@ -719,7 +719,8 @@ function ExtrasTab({
     }
   };
 
-  const getCategoryNames = (categoryIds: string[]) => {
+  const getCategoryNames = (categoryIds: string[] | undefined) => {
+    if (!categoryIds || !Array.isArray(categoryIds)) return '';
     return categoryIds.map(id => {
       const category = categories.find(c => c.name === id);
       return category ? category.name : id;
@@ -836,7 +837,7 @@ function ExtrasTab({
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-lg">${extra.price}</span>
                 <div className="flex gap-1">
-                  {extra.categories.map(cat => (
+                  {(extra.categories || []).map(cat => (
                     <Badge key={cat} variant="secondary" className="text-xs">
                       {cat}
                     </Badge>
