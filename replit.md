@@ -104,9 +104,11 @@ The application is structured as a monorepo with shared types and schemas, enabl
 ## Recent Changes
 
 ### January 2025
-- **NocoDB Integration**: Added support for NocoDB v2 API with project ID `pf5ksg4e5zqgn89`
+- **Supabase Migration**: Completely migrated from NocoDB to Supabase for better reliability and features
+- **Database Schema**: Created comprehensive Supabase schema with categories, menu, extras, and orders tables
 - **MetaMask Discount System**: Implemented 10% automatic discount for crypto payments
 - **Payment Enhancement**: Added transparent pricing display with subtotal, discount, and final total
-- **Fallback Architecture**: Dual-mode storage system (NocoDB primary, in-memory fallback)
+- **Fallback Architecture**: Dual-mode storage system (Supabase primary, in-memory fallback)
 - **Order Management**: Enhanced order creation with menu items, extras, and payment method tracking
-- **Error Handling**: Improved error handling for NocoDB API failures with graceful fallbacks
+- **Real-time Features**: Enabled Supabase real-time updates and Row Level Security
+- **Sample Data**: Included 16 menu items, 4 categories, and 10 extras with realistic pricing

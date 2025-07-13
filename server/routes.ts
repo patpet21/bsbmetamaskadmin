@@ -2,21 +2,18 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema } from "@shared/schema";
-import { nocodbClient } from "./nocodb";
+import { supabaseService } from "./supabase";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {
-      // Try NocoDB first, fallback to local storage
+      // Try Supabase first, fallback to local storage
       let categories;
       try {
-        categories = await nocodbClient.getCategories();
-        if (!categories || categories.length === 0) {
-          throw new Error("No categories from NocoDB");
-        }
-      } catch (nocoError) {
-        console.log("NocoDB categories failed, using local storage:", nocoError.message);
+        categories = await supabaseService.getCategories();
+      } catch (supabaseError) {
+        console.log("Supabase categories failed, using local storage:", supabaseError.message);
         categories = await storage.getCategories();
       }
       res.json(categories);
@@ -28,7 +25,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/categories", async (req, res) => {
     try {
-      const newCategory = await storage.createCategory(req.body);
+      let newCategory;
+      try {
+        newCategory = await supabaseService.createCategory(req.body);
+      } catch (supabaseError) {
+        console.log("Supabase create category failed, using local storage:", supabaseError.message);
+        newCategory = await storage.createCategory(req.body);
+      }
       res.json(newCategory);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -62,24 +65,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { category } = req.query;
       let menuItems;
       
-      // Try NocoDB first, fallback to local storage
-      try {
-        menuItems = await nocodbClient.getMenuItems();
-        if (!menuItems || menuItems.length === 0) {
-          throw new Error("No menu items from NocoDB");
-        }
-        
-        // Filter by category if specified
-        if (category && category !== "all") {
-          menuItems = menuItems.filter((item: any) => item.category_id === parseInt(category as string));
-        }
-      } catch (nocoError) {
-        console.log("NocoDB menu failed, using local storage:", nocoError.message);
-        if (category && category !== "all") {
-          menuItems = await storage.getMenuItemsByCategory(parseInt(category as string));
-        } else {
-          menuItems = await storage.getMenuItems();
-        }
+      if (category && category !== "all") {
+        menuItems = await storage.getMenuItemsByCategory(parseInt(category as string));
+      } else {
+        menuItems = await storage.getMenuItems();
       }
       
       res.json(menuItems);
@@ -132,17 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Extras
   app.get("/api/extras", async (req, res) => {
     try {
-      // Try NocoDB first, fallback to local storage
-      let extras;
-      try {
-        extras = await nocodbClient.getExtras();
-        if (!extras || extras.length === 0) {
-          throw new Error("No extras from NocoDB");
-        }
-      } catch (nocoError) {
-        console.log("NocoDB extras failed, using local storage:", nocoError.message);
-        extras = await storage.getExtras();
-      }
+      const extras = await storage.getExtras();
       res.json(extras);
     } catch (error) {
       console.error("Error fetching extras:", error);
