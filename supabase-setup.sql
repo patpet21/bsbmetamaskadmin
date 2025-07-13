@@ -36,7 +36,7 @@ CREATE TABLE extras (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Orders table
+-- Orders table  
 CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   customer_name VARCHAR(255) NOT NULL,
@@ -45,9 +45,11 @@ CREATE TABLE orders (
   delivery_address TEXT NOT NULL,
   menu_items JSONB NOT NULL, -- Store cart items as JSON
   total_amount DECIMAL(10,2) NOT NULL,
-  payment_method VARCHAR(50) DEFAULT 'crypto',
+  payment_method VARCHAR(50) DEFAULT 'crypto', -- 'crypto' or 'card'
   transaction_hash VARCHAR(255),
-  payment_token VARCHAR(10), -- 'PRDX' or 'USDC'
+  payment_token VARCHAR(10), -- For crypto: 'PRDX' or 'USDC'
+  card_last4 VARCHAR(4), -- Last 4 digits of card
+  card_brand VARCHAR(20), -- visa, mastercard, etc.
   discount_applied DECIMAL(10,2) DEFAULT 0,
   status VARCHAR(50) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT NOW(),

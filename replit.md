@@ -106,9 +106,11 @@ The application is structured as a monorepo with shared types and schemas, enabl
 ### January 2025
 - **Supabase Migration**: Completely migrated from NocoDB to Supabase for better reliability and features
 - **Database Schema**: Created comprehensive Supabase schema with categories, menu, extras, and orders tables
+- **Dual Payment System**: Added support for both cryptocurrency (PRDX/USDC) and credit card payments
 - **MetaMask Discount System**: Implemented 10% automatic discount for crypto payments
+- **Enhanced Wallet Management**: Professional wallet card with balance display, connection management, and disconnect functionality
 - **Payment Enhancement**: Added transparent pricing display with subtotal, discount, and final total
 - **Fallback Architecture**: Dual-mode storage system (Supabase primary, in-memory fallback)
-- **Order Management**: Enhanced order creation with menu items, extras, and payment method tracking
+- **Order Management**: Enhanced order creation with payment method tracking (crypto hash, card details)
 - **Real-time Features**: Enabled Supabase real-time updates and Row Level Security
 - **Sample Data**: Included 16 menu items, 4 categories, and 10 extras with realistic pricing

@@ -42,7 +42,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
-      const updatedCategory = await storage.updateCategory(id, updates);
+      let updatedCategory;
+      try {
+        updatedCategory = await supabaseService.updateCategory(id, updates);
+      } catch (supabaseError) {
+        console.log("Supabase update category failed, using local storage:", supabaseError.message);
+        updatedCategory = await storage.updateCategory(id, updates);
+      }
       res.json(updatedCategory);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -52,7 +58,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/categories/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      await storage.deleteCategory(id);
+      try {
+        await supabaseService.deleteCategory(id);
+      } catch (supabaseError) {
+        console.log("Supabase delete category failed, using local storage:", supabaseError.message);
+        await storage.deleteCategory(id);
+      }
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -65,10 +76,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { category } = req.query;
       let menuItems;
       
-      if (category && category !== "all") {
-        menuItems = await storage.getMenuItemsByCategory(parseInt(category as string));
-      } else {
-        menuItems = await storage.getMenuItems();
+      try {
+        if (category && category !== "all") {
+          menuItems = await supabaseService.getMenuItemsByCategory(parseInt(category as string));
+        } else {
+          menuItems = await supabaseService.getMenuItems();
+        }
+      } catch (supabaseError) {
+        console.log("Supabase menu failed, using local storage:", supabaseError.message);
+        if (category && category !== "all") {
+          menuItems = await storage.getMenuItemsByCategory(parseInt(category as string));
+        } else {
+          menuItems = await storage.getMenuItems();
+        }
       }
       
       res.json(menuItems);
@@ -86,7 +106,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (menuData.category_id) {
         menuData.category_id = parseInt(menuData.category_id);
       }
-      const newMenuItem = await storage.createMenuItem(menuData);
+      let newMenuItem;
+      try {
+        newMenuItem = await supabaseService.createMenuItem(menuData);
+      } catch (supabaseError) {
+        console.log("Supabase create menu item failed, using local storage:", supabaseError.message);
+        newMenuItem = await storage.createMenuItem(menuData);
+      }
       res.json(newMenuItem);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -121,7 +147,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Extras
   app.get("/api/extras", async (req, res) => {
     try {
-      const extras = await storage.getExtras();
+      let extras;
+      try {
+        extras = await supabaseService.getExtras();
+      } catch (supabaseError) {
+        console.log("Supabase extras failed, using local storage:", supabaseError.message);
+        extras = await storage.getExtras();
+      }
       res.json(extras);
     } catch (error) {
       console.error("Error fetching extras:", error);
@@ -163,7 +195,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Orders
   app.get("/api/orders", async (req, res) => {
     try {
-      const orders = await storage.getOrders();
+      let orders;
+      try {
+        orders = await supabaseService.getOrders();
+      } catch (supabaseError) {
+        console.log("Supabase get orders failed, using local storage:", supabaseError.message);
+        orders = await storage.getOrders();
+      }
       res.json(orders);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -191,13 +229,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const orderData = req.body;
       
-      // Try to create order in NocoDB first, fallback to local storage
       let order;
       try {
-        order = await nocodbClient.createOrder(orderData);
-        console.log("Order created in NocoDB:", order);
-      } catch (nocoError) {
-        console.log("NocoDB order creation failed, using local storage:", nocoError.message);
+        order = await supabaseService.createOrder(orderData);
+        console.log("Order created in Supabase:", order);
+      } catch (supabaseError) {
+        console.log("Supabase order creation failed, using local storage:", supabaseError.message);
         // Validate data for local storage
         const validatedData = insertOrderSchema.parse(orderData);
         order = await storage.createOrder(validatedData);

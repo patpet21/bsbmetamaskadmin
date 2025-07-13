@@ -9,6 +9,8 @@ import { Coins, DollarSign, Wallet, CreditCard } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { connectWallet, sendTokenPayment, calculateMetaMaskDiscount, type WalletConnection, type PaymentDetails } from '../lib/crypto';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import PaymentMethodSelector, { PaymentMethod } from './PaymentMethodSelector';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -28,6 +30,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
   const [walletConnection, setWalletConnection] = useState<WalletConnection | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>({ type: 'crypto' });
   
   const { state, clearCart } = useCart();
   const { toast } = useToast();
