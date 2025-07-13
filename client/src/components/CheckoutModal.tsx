@@ -48,32 +48,36 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
       const discount = calculateMetaMaskDiscount(state.total);
       setPaymentDetails(discount);
       toast({
-        title: "Wallet Connected",
-        description: `MetaMask connected! You'll get a ${discount.discountPercentage}% discount on your order.`,
+        title: "Wallet Connesso!",
+        description: `MetaMask connesso! Riceverai uno sconto del ${discount.discountPercentage}% sul tuo ordine.`,
       });
     } catch (error) {
       toast({
-        title: "Connection Failed",
-        description: error instanceof Error ? error.message : "Failed to connect wallet",
+        title: "Connessione Fallita",
+        description: error instanceof Error ? error.message : "Impossibile connettere wallet",
         variant: "destructive",
       });
     }
   };
 
-  const handlePlaceOrder = async () => {
-    if (!walletConnection || !selectedPayment) {
-      toast({
-        title: "Missing Requirements",
-        description: "Please connect your wallet and select a payment method",
-        variant: "destructive",
-      });
-      return;
-    }
+  const processCardPayment = async (cardDetails: any) => {
+    // Simulate card payment processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // In a real app, you would integrate with a payment processor like Stripe
+    const mockTransactionId = 'card_' + Math.random().toString(36).substring(2, 15);
+    return {
+      transactionId: mockTransactionId,
+      last4: cardDetails.number.replace(/\s/g, '').slice(-4),
+      brand: cardDetails.number.replace(/\s/g, '').startsWith('4') ? 'visa' : 'mastercard'
+    };
+  };
 
-    if (!formData.name || !formData.email || !formData.phone) {
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.email || !formData.address) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required customer information",
+        title: "Errore",
+        description: "Per favore compila tutti i campi obbligatori.",
         variant: "destructive",
       });
       return;
@@ -82,86 +86,84 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
     setIsProcessing(true);
 
     try {
-      // Calculate final amount with MetaMask discount
-      const finalAmount = paymentDetails ? paymentDetails.finalAmount : state.total;
-      
-      // Create order first
-      const orderData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        note: formData.note,
-        status: 'pending',
-        paid: false,
-        total: finalAmount.toFixed(2),
-        menu_items: state.items.map(item => ({
-          id: item.menuItem.id,
-          name: item.menuItem.name,
-          quantity: item.quantity,
-          price: item.menuItem.price
-        })),
-        extras: state.items.flatMap(item => 
-          item.extras.map(extra => ({
-            id: extra.id,
-            name: extra.name,
-            price: extra.price
-          }))
-        ),
-        payment_method: selectedPayment,
-        discount_applied: paymentDetails ? paymentDetails.discountPercentage : 0,
-        original_total: state.total.toFixed(2),
+      let orderData: any = {
+        customer_name: formData.name,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        delivery_address: formData.address,
+        menu_items: JSON.stringify(state.items),
+        total_amount: state.total,
+        payment_method: paymentMethod.type,
+        status: 'pending'
       };
 
-      const orderResponse = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
+      if (paymentMethod.type === 'crypto') {
+        if (!selectedPayment || !walletConnection) {
+          toast({
+            title: "Errore",
+            description: "Per favore seleziona un metodo di pagamento e connetti il wallet.",
+            variant: "destructive",
+          });
+          return;
+        }
 
-      if (!orderResponse.ok) {
-        throw new Error('Failed to create order');
+        // Process crypto payment
+        const finalAmount = paymentDetails?.finalAmount || state.total;
+        const txHash = await sendTokenPayment(walletConnection, selectedPayment, finalAmount);
+        
+        orderData.transaction_hash = txHash;
+        orderData.payment_token = selectedPayment;
+        orderData.discount_applied = paymentDetails?.discountAmount || 0;
+        orderData.total_amount = finalAmount;
+        orderData.status = 'completed';
+        
+      } else if (paymentMethod.type === 'card') {
+        if (!paymentMethod.cardDetails) {
+          toast({
+            title: "Errore",
+            description: "Per favore inserisci i dettagli della carta.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Process card payment
+        const cardResult = await processCardPayment(paymentMethod.cardDetails);
+        orderData.transaction_hash = cardResult.transactionId;
+        orderData.card_last4 = cardResult.last4;
+        orderData.card_brand = cardResult.brand;
+        orderData.status = 'completed';
       }
 
-      const order = await orderResponse.json();
-
-      // Send payment with MetaMask discount
-      const txHash = await sendTokenPayment(
-        walletConnection,
-        selectedPayment,
-        state.total,
-        true // Apply MetaMask discount
-      );
-
-      // Update order with payment info
-      await fetch(`/api/orders/${order.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          paid: true,
-          tx_id: txHash,
-          status: 'confirmed',
-        }),
-      });
-
-      // Clear cart and show success
+      // Save order to database
+      const response = await apiRequest('POST', '/api/orders', orderData);
+      const order = await response.json();
+      
+      const discountAmount = paymentMethod.type === 'crypto' ? (paymentDetails?.discountAmount || 0) : 0;
+      const finalAmount = paymentMethod.type === 'crypto' ? (paymentDetails?.finalAmount || state.total) : state.total;
+      
+      onOrderComplete(order.id.toString(), orderData.transaction_hash, finalAmount, discountAmount);
       clearCart();
-      onOrderComplete(order.id, txHash, finalAmount, paymentDetails?.discountPercentage);
       onClose();
-
-    } catch (error) {
+      
       toast({
-        title: "Payment Failed",
-        description: error instanceof Error ? error.message : "Failed to process payment",
+        title: "Ordine Completato!",
+        description: `Pagamento di €${finalAmount.toFixed(2)} completato con successo.`,
+      });
+      
+    } catch (error: any) {
+      console.error('Payment failed:', error);
+      toast({
+        title: "Errore nel Pagamento", 
+        description: error.message || "Il pagamento non è andato a buon fine.",
         variant: "destructive",
       });
     } finally {
       setIsProcessing(false);
     }
   };
+
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -275,90 +277,102 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
 
           {/* Payment Method */}
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card 
-                className={`cursor-pointer transition-colors ${
-                  selectedPayment === 'PRDX' ? 'border-[hsl(142,71%,45%)] bg-green-50' : 'hover:border-[hsl(142,71%,45%)]'
-                }`}
-                onClick={() => setSelectedPayment('PRDX')}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h5 className="font-semibold text-gray-900">PRDX Token</h5>
-                      <p className="text-sm text-gray-600">Pay with PRDX on Base</p>
-                    </div>
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Coins className="w-4 h-4 text-blue-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card 
-                className={`cursor-pointer transition-colors ${
-                  selectedPayment === 'USDC' ? 'border-[hsl(142,71%,45%)] bg-green-50' : 'hover:border-[hsl(142,71%,45%)]'
-                }`}
-                onClick={() => setSelectedPayment('USDC')}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h5 className="font-semibold text-gray-900">USDC</h5>
-                      <p className="text-sm text-gray-600">Pay with USDC on Base</p>
-                    </div>
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <DollarSign className="w-4 h-4 text-green-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Metodo di Pagamento</h4>
+            <PaymentMethodSelector 
+              onPaymentMethodSelect={setPaymentMethod}
+              selectedMethod={paymentMethod}
+            />
+            
+            {/* Show crypto token selection only if crypto is selected */}
+            {paymentMethod.type === 'crypto' && (
+              <div className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card 
+                    className={`cursor-pointer transition-colors ${
+                      selectedPayment === 'PRDX' ? 'border-[hsl(142,71%,45%)] bg-green-50' : 'hover:border-[hsl(142,71%,45%)]'
+                    }`}
+                    onClick={() => setSelectedPayment('PRDX')}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="font-semibold text-gray-900">PRDX Token</h5>
+                          <p className="text-sm text-gray-600">Pay with PRDX on Base</p>
+                        </div>
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Coins className="w-4 h-4 text-blue-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card 
+                    className={`cursor-pointer transition-colors ${
+                      selectedPayment === 'USDC' ? 'border-[hsl(142,71%,45%)] bg-green-50' : 'hover:border-[hsl(142,71%,45%)]'
+                    }`}
+                    onClick={() => setSelectedPayment('USDC')}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="font-semibold text-gray-900">USDC</h5>
+                          <p className="text-sm text-gray-600">Pay with USDC on Base</p>
+                        </div>
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <DollarSign className="w-4 h-4 text-green-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Wallet Connection */}
-          <div>
-            <div className="text-center">
-              {!walletConnection ? (
-                <div className="space-y-4">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-sm text-green-800">
-                      🎉 Connect your MetaMask wallet to get a <strong>10% discount</strong> on your order!
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleConnectWallet}
-                    className="bg-gray-900 text-white hover:bg-gray-800"
-                  >
-                    <Wallet className="w-4 h-4 mr-2" />
-                    Connect MetaMask Wallet
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-600">
-                    Connected: {walletConnection.address.slice(0, 6)}...{walletConnection.address.slice(-4)}
-                  </div>
-                  {paymentDetails && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          {/* Wallet Connection - only show if crypto payment selected */}
+          {paymentMethod.type === 'crypto' && (
+            <div>
+              <div className="text-center">
+                {!walletConnection ? (
+                  <div className="space-y-4">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <p className="text-sm text-green-800">
-                        ✅ MetaMask discount applied! Save ${paymentDetails.discountAmount.toFixed(2)} on this order.
+                        🎉 Connetti il tuo wallet MetaMask per ottenere uno <strong>sconto del 10%</strong> sul tuo ordine!
                       </p>
                     </div>
-                  )}
-                </div>
-              )}
+                    <Button
+                      onClick={handleConnectWallet}
+                      className="bg-gray-900 text-white hover:bg-gray-800"
+                    >
+                      <Wallet className="w-4 h-4 mr-2" />
+                      Connetti MetaMask Wallet
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="text-sm text-gray-600">
+                      Connesso: {walletConnection.address.slice(0, 6)}...{walletConnection.address.slice(-4)}
+                    </div>
+                    {paymentDetails && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <p className="text-sm text-green-800">
+                          ✅ Sconto MetaMask applicato! Risparmi €{paymentDetails.discountAmount.toFixed(2)} su questo ordine.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Place Order Button */}
           <Button
-            onClick={handlePlaceOrder}
-            disabled={!walletConnection || !selectedPayment || isProcessing}
+            onClick={handleSubmit}
+            disabled={isProcessing || !formData.name || !formData.email || !formData.address || (paymentMethod.type === 'crypto' && (!selectedPayment || !walletConnection)) || (paymentMethod.type === 'card' && !paymentMethod.cardDetails)}
             className="w-full bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)] disabled:opacity-50"
           >
             <CreditCard className="w-4 h-4 mr-2" />
-            {isProcessing ? 'Processing...' : 'Place Order & Pay'}
+            {isProcessing ? 'Elaborazione...' : `Ordina - €${(paymentMethod.type === 'crypto' && paymentDetails ? paymentDetails.finalAmount : state.total).toFixed(2)}`}
           </Button>
         </div>
       </DialogContent>
