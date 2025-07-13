@@ -12,13 +12,13 @@ export class NocoDBClient {
 
   constructor() {
     this.baseURL = 'https://app.nocodb.com';
-    this.token = process.env.NOCODB_TOKEN || 'zmmPNUaA7kWsxmOa6PHMAPM7aRqmft5rfEWrceir';
+    this.token = 'h3BEWAoqurYy1IRvScqBQ1pPGLZrNSmFn0vDXEE8';
     this.projectId = 'pf5ksg4e5zqgn89';
     this.tableIds = {
       menu: 'mmrv37h1hbu2hl6',
       extras: 'mk1ufwpu8salnvx',
       orders: 'mcgorx1a6qxkfsp',
-      categories: 'mhzfcqmgq9kbj3c'
+      categories: 'mi2girkxamkni1y'
     };
     
     console.log('NocoDB Configuration:', {
@@ -30,14 +30,11 @@ export class NocoDBClient {
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+    const response = await fetch(`${this.baseURL}${endpoint}?workspace_id=w3a29qs2`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
         'xc-token': this.token,
-        'xc-workspace-id': 'w3a29qs2',
-        'workspace-id': 'w3a29qs2',
-        'x-workspace-id': 'w3a29qs2',
         ...options.headers,
       },
     });
@@ -53,7 +50,7 @@ export class NocoDBClient {
 
   async getMenuItems() {
     try {
-      const endpoint = `/api/v2/tables/${this.tableIds.menu}/records?workspaceId=w3a29qs2`;
+      const endpoint = `/api/v2/tables/${this.tableIds.menu}/records`;
       console.log('NocoDB Menu endpoint:', `${this.baseURL}${endpoint}`);
       const response = await this.request(endpoint);
       return response.list || response;
@@ -65,7 +62,7 @@ export class NocoDBClient {
 
   async getCategories() {
     try {
-      const endpoint = `/api/v2/tables/${this.tableIds.categories}/records?workspaceId=w3a29qs2`;
+      const endpoint = `/api/v2/tables/${this.tableIds.categories}/records`;
       console.log('NocoDB Categories endpoint:', `${this.baseURL}${endpoint}`);
       const response = await this.request(endpoint);
       return response.list || response;
@@ -77,7 +74,7 @@ export class NocoDBClient {
 
   async getExtras() {
     try {
-      const endpoint = `/api/v2/tables/${this.tableIds.extras}/records?workspaceId=w3a29qs2`;
+      const endpoint = `/api/v2/tables/${this.tableIds.extras}/records`;
       console.log('NocoDB Extras endpoint:', `${this.baseURL}${endpoint}`);
       const response = await this.request(endpoint);
       return response.list || response;

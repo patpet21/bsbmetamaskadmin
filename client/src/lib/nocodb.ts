@@ -12,13 +12,13 @@ export class NocoDBClient {
 
   constructor() {
     this.baseURL = import.meta.env.VITE_NOCODB_BASE_URL || 'https://app.nocodb.com';
-    this.token = import.meta.env.VITE_NOCODB_TOKEN || 'zmmPNUaA7kWsxmOa6PHMAPM7aRqmft5rfEWrceir';
+    this.token = import.meta.env.VITE_NOCODB_TOKEN || 'h3BEWAoqurYy1IRvScqBQ1pPGLZrNSmFn0vDXEE8';
     this.projectId = 'pf5ksg4e5zqgn89';
     this.tableIds = {
       menu: 'mmrv37h1hbu2hl6',
       extras: 'mk1ufwpu8salnvx',
       orders: 'mcgorx1a6qxkfsp',
-      categories: 'categories' // Will need to be updated with actual table ID
+      categories: 'mi2girkxamkni1y'
     };
   }
 
