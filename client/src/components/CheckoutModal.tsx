@@ -48,13 +48,13 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
       const discount = calculateMetaMaskDiscount(state.total);
       setPaymentDetails(discount);
       toast({
-        title: "Wallet Connesso!",
-        description: `MetaMask connesso! Riceverai uno sconto del ${discount.discountPercentage}% sul tuo ordine.`,
+        title: "Wallet Connected!",
+        description: `MetaMask connected! You'll get a ${discount.discountPercentage}% discount on your order.`,
       });
     } catch (error) {
       toast({
-        title: "Connessione Fallita",
-        description: error instanceof Error ? error.message : "Impossibile connettere wallet",
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : "Unable to connect wallet",
         variant: "destructive",
       });
     }
@@ -76,8 +76,8 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
   const handleSubmit = async () => {
     if (!formData.name || !formData.email || !formData.address) {
       toast({
-        title: "Errore",
-        description: "Per favore compila tutti i campi obbligatori.",
+        title: "Error",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
@@ -100,8 +100,8 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
       if (paymentMethod.type === 'crypto') {
         if (!selectedPayment || !walletConnection) {
           toast({
-            title: "Errore",
-            description: "Per favore seleziona un metodo di pagamento e connetti il wallet.",
+            title: "Error",
+            description: "Please select a payment method and connect your wallet.",
             variant: "destructive",
           });
           return;
@@ -113,15 +113,15 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
         
         orderData.transaction_hash = txHash;
         orderData.payment_token = selectedPayment;
-        orderData.discount_applied = paymentDetails?.discountAmount || 0;
+        orderData.discount_applied = (paymentDetails?.discountAmount || 0).toString();
         orderData.total_amount = finalAmount.toString();
         orderData.status = 'completed';
         
       } else if (paymentMethod.type === 'card') {
         if (!paymentMethod.cardDetails) {
           toast({
-            title: "Errore",
-            description: "Per favore inserisci i dettagli della carta.",
+            title: "Error",
+            description: "Please enter your card details.",
             variant: "destructive",
           });
           return;
@@ -147,15 +147,15 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
       onClose();
       
       toast({
-        title: "Ordine Completato!",
-        description: `Pagamento di €${finalAmount.toFixed(2)} completato con successo.`,
+        title: "Order Completed!",
+        description: `Payment of €${finalAmount.toFixed(2)} completed successfully.`,
       });
       
     } catch (error: any) {
       console.error('Payment failed:', error);
       toast({
-        title: "Errore nel Pagamento", 
-        description: error.message || "Il pagamento non è andato a buon fine.",
+        title: "Payment Error", 
+        description: error.message || "Payment processing failed.",
         variant: "destructive",
       });
     } finally {
@@ -277,7 +277,21 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
 
           {/* Payment Method */}
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Metodo di Pagamento</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h4>
+            
+            {/* Crypto Discount Banner */}
+            <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">10%</span>
+                </div>
+                <div>
+                  <p className="text-green-800 font-semibold">Pay with Crypto & Save 10%!</p>
+                  <p className="text-green-600 text-sm">Connect MetaMask to get instant discount on PRDX/USDC payments</p>
+                </div>
+              </div>
+            </div>
+            
             <PaymentMethodSelector 
               onPaymentMethodSelect={setPaymentMethod}
               selectedMethod={paymentMethod}
@@ -336,7 +350,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
                   <div className="space-y-4">
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <p className="text-sm text-green-800">
-                        🎉 Connetti il tuo wallet MetaMask per ottenere uno <strong>sconto del 10%</strong> sul tuo ordine!
+                        🎉 Connect your MetaMask wallet to get a <strong>10% discount</strong> on your order!
                       </p>
                     </div>
                     <Button
@@ -344,18 +358,18 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
                       className="bg-gray-900 text-white hover:bg-gray-800"
                     >
                       <Wallet className="w-4 h-4 mr-2" />
-                      Connetti MetaMask Wallet
+                      Connect MetaMask Wallet
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="text-sm text-gray-600">
-                      Connesso: {walletConnection.address.slice(0, 6)}...{walletConnection.address.slice(-4)}
+                      Connected: {walletConnection.address.slice(0, 6)}...{walletConnection.address.slice(-4)}
                     </div>
                     {paymentDetails && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                         <p className="text-sm text-green-800">
-                          ✅ Sconto MetaMask applicato! Risparmi €{paymentDetails.discountAmount.toFixed(2)} su questo ordine.
+                          ✅ MetaMask discount applied! You save €{paymentDetails.discountAmount.toFixed(2)} on this order.
                         </p>
                       </div>
                     )}
@@ -372,7 +386,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
             className="w-full bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)] disabled:opacity-50"
           >
             <CreditCard className="w-4 h-4 mr-2" />
-            {isProcessing ? 'Elaborazione...' : `Ordina - €${(paymentMethod.type === 'crypto' && paymentDetails ? paymentDetails.finalAmount : state.total).toFixed(2)}`}
+            {isProcessing ? 'Processing...' : `Place Order - €${(paymentMethod.type === 'crypto' && paymentDetails ? paymentDetails.finalAmount : state.total).toFixed(2)}`}
           </Button>
         </div>
       </DialogContent>

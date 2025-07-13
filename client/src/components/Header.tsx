@@ -43,7 +43,7 @@ export default function Header({ onOpenCart, onConnectWallet, isWalletConnected,
               className="relative bg-orange-500 text-white hover:bg-orange-600"
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
-              Carrello ({state.totalItems})
+              Cart ({state.totalItems})
             </Button>
             
             <Popover>

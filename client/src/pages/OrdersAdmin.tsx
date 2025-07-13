@@ -19,6 +19,7 @@ export default function OrdersAdmin() {
 
   const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ['/api/orders'],
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
   });
 
   const updateOrderMutation = useMutation({
@@ -29,8 +30,8 @@ export default function OrdersAdmin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
       toast({
-        title: "Ordine aggiornato",
-        description: "Lo stato dell'ordine è stato modificato con successo.",
+        title: "Order Updated",
+        description: "Order status has been successfully updated.",
       });
     },
   });
@@ -83,58 +84,58 @@ export default function OrdersAdmin() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-4 md:p-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Centro Controllo Ordini</h1>
-          <p className="text-gray-600 mt-2">Gestisci tutti gli ordini di Best Sicily Bottega</p>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Orders Control Center</h1>
+          <p className="text-gray-600 mt-2">Manage all Best Sicily Bottega orders</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 md:mb-8">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center">
-                <Clock className="h-8 w-8 text-yellow-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Ordini Pending</p>
-                  <p className="text-2xl font-bold text-gray-900">{pendingOrders.length}</p>
+                <Clock className="h-6 w-6 md:h-8 md:w-8 text-yellow-600" />
+                <div className="ml-3 md:ml-4">
+                  <p className="text-xs md:text-sm font-medium text-gray-600">Pending Orders</p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">{pendingOrders.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center">
-                <Truck className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">In Lavorazione</p>
-                  <p className="text-2xl font-bold text-gray-900">{activeOrders.length}</p>
+                <Truck className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
+                <div className="ml-3 md:ml-4">
+                  <p className="text-xs md:text-sm font-medium text-gray-600">In Progress</p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">{activeOrders.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center">
-                <Check className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Completati Oggi</p>
-                  <p className="text-2xl font-bold text-gray-900">{completedOrders.length}</p>
+                <Check className="h-6 w-6 md:h-8 md:w-8 text-green-600" />
+                <div className="ml-3 md:ml-4">
+                  <p className="text-xs md:text-sm font-medium text-gray-600">Completed Today</p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">{completedOrders.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center">
-                <CreditCard className="h-8 w-8 text-orange-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Totale Vendite</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                <CreditCard className="h-6 w-6 md:h-8 md:w-8 text-orange-600" />
+                <div className="ml-3 md:ml-4">
+                  <p className="text-xs md:text-sm font-medium text-gray-600">Total Sales</p>
+                  <p className="text-lg md:text-2xl font-bold text-gray-900">
                     €{orders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0).toFixed(2)}
                   </p>
                 </div>
@@ -145,81 +146,83 @@ export default function OrdersAdmin() {
 
         {/* Orders Tabs */}
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="pending">
-              Ordini da Confermare ({pendingOrders.length})
+          <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 h-auto md:h-10">
+            <TabsTrigger value="pending" className="mb-1 md:mb-0">
+              Pending Orders ({pendingOrders.length})
             </TabsTrigger>
-            <TabsTrigger value="active">
-              In Lavorazione ({activeOrders.length})
+            <TabsTrigger value="active" className="mb-1 md:mb-0">
+              In Progress ({activeOrders.length})
             </TabsTrigger>
             <TabsTrigger value="completed">
-              Completati ({completedOrders.length})
+              Completed ({completedOrders.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending">
             <Card>
               <CardHeader>
-                <CardTitle>Ordini da Confermare</CardTitle>
+                <CardTitle>Orders to Confirm</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Totale</TableHead>
-                      <TableHead>Pagamento</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">#{order.id}</TableCell>
-                        <TableCell>{order.customer_name}</TableCell>
-                        <TableCell>{formatAmount(order.total_amount)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {getPaymentIcon(order.payment_method || 'card')}
-                            <span className="capitalize">{order.payment_method}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(order.created_at || '').toLocaleDateString('it-IT')}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                setSelectedOrder(order);
-                                setIsDetailsOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleStatusUpdate(order.id, 'confirmed')}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleStatusUpdate(order.id, 'cancelled')}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[80px]">ID</TableHead>
+                        <TableHead className="min-w-[120px]">Customer</TableHead>
+                        <TableHead className="min-w-[80px]">Total</TableHead>
+                        <TableHead className="min-w-[100px]">Payment</TableHead>
+                        <TableHead className="min-w-[100px]">Date</TableHead>
+                        <TableHead className="min-w-[120px]">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">#{order.id}</TableCell>
+                          <TableCell>{order.customer_name}</TableCell>
+                          <TableCell>{formatAmount(order.total_amount)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              {getPaymentIcon(order.payment_method || 'card')}
+                              <span className="capitalize">{order.payment_method}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(order.created_at || '').toLocaleDateString('en-US')}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col md:flex-row space-y-1 md:space-y-0 md:space-x-2">
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedOrder(order);
+                                  setIsDetailsOpen(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatusUpdate(order.id, 'confirmed')}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleStatusUpdate(order.id, 'cancelled')}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -227,32 +230,113 @@ export default function OrdersAdmin() {
           <TabsContent value="active">
             <Card>
               <CardHeader>
-                <CardTitle>Ordini in Lavorazione</CardTitle>
+                <CardTitle>Orders in Progress</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Stato</TableHead>
-                      <TableHead>Totale</TableHead>
-                      <TableHead>Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">#{order.id}</TableCell>
-                        <TableCell>{order.customer_name}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(order.status || '')}>
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatAmount(order.total_amount)}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {activeOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">#{order.id}</TableCell>
+                          <TableCell>{order.customer_name}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(order.status || '')}>
+                              {order.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{formatAmount(order.total_amount)}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col md:flex-row space-y-1 md:space-y-0 md:space-x-2">
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedOrder(order);
+                                  setIsDetailsOpen(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {order.status === 'confirmed' && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleStatusUpdate(order.id, 'preparing')}
+                                  className="bg-orange-600 hover:bg-orange-700"
+                                >
+                                  Prepare
+                                </Button>
+                              )}
+                              {order.status === 'preparing' && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleStatusUpdate(order.id, 'ready')}
+                                  className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                  Ready
+                                </Button>
+                              )}
+                              {order.status === 'ready' && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleStatusUpdate(order.id, 'delivered')}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  Delivered
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="completed">
+            <Card>
+              <CardHeader>
+                <CardTitle>Completed Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {completedOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">#{order.id}</TableCell>
+                          <TableCell>{order.customer_name}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(order.status || '')}>
+                              {order.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{formatAmount(order.total_amount)}</TableCell>
+                          <TableCell>
+                            {new Date(order.created_at || '').toLocaleDateString('en-US')}
+                          </TableCell>
+                          <TableCell>
                             <Button
                               size="sm"
                               onClick={() => {
@@ -262,89 +346,12 @@ export default function OrdersAdmin() {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            {order.status === 'confirmed' && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleStatusUpdate(order.id, 'preparing')}
-                                className="bg-orange-600 hover:bg-orange-700"
-                              >
-                                Prepara
-                              </Button>
-                            )}
-                            {order.status === 'preparing' && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleStatusUpdate(order.id, 'ready')}
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                Pronto
-                              </Button>
-                            )}
-                            {order.status === 'ready' && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleStatusUpdate(order.id, 'delivered')}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                Consegnato
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="completed">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ordini Completati</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Stato</TableHead>
-                      <TableHead>Totale</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {completedOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">#{order.id}</TableCell>
-                        <TableCell>{order.customer_name}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(order.status || '')}>
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatAmount(order.total_amount)}</TableCell>
-                        <TableCell>
-                          {new Date(order.created_at || '').toLocaleDateString('it-IT')}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setIsDetailsOpen(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -352,30 +359,30 @@ export default function OrdersAdmin() {
 
         {/* Order Details Modal */}
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Dettagli Ordine #{selectedOrder?.id}</DialogTitle>
+              <DialogTitle>Order Details #{selectedOrder?.id}</DialogTitle>
             </DialogHeader>
             {selectedOrder && (
               <div className="space-y-6">
                 {/* Customer Info */}
                 <div>
-                  <h3 className="font-semibold mb-2">Informazioni Cliente</h3>
+                  <h3 className="font-semibold mb-2">Customer Information</h3>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    <p><strong>Nome:</strong> {selectedOrder.customer_name}</p>
+                    <p><strong>Name:</strong> {selectedOrder.customer_name}</p>
                     <p><strong>Email:</strong> {selectedOrder.customer_email}</p>
-                    <p><strong>Telefono:</strong> {selectedOrder.customer_phone}</p>
-                    <p><strong>Indirizzo:</strong> {selectedOrder.delivery_address}</p>
+                    <p><strong>Phone:</strong> {selectedOrder.customer_phone}</p>
+                    <p><strong>Address:</strong> {selectedOrder.delivery_address}</p>
                   </div>
                 </div>
 
                 {/* Order Items */}
                 <div>
-                  <h3 className="font-semibold mb-2">Prodotti Ordinati</h3>
+                  <h3 className="font-semibold mb-2">Ordered Items</h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     {parseMenuItems(selectedOrder.menu_items).map((item: any, index: number) => (
                       <div key={index} className="flex justify-between py-2 border-b last:border-0">
-                        <span>{item.menuItem?.name || 'Prodotto'} x{item.quantity}</span>
+                        <span>{item.menuItem?.name || 'Product'} x{item.quantity}</span>
                         <span>€{(item.totalPrice || 0).toFixed(2)}</span>
                       </div>
                     ))}
@@ -384,18 +391,18 @@ export default function OrdersAdmin() {
 
                 {/* Payment Info */}
                 <div>
-                  <h3 className="font-semibold mb-2">Informazioni Pagamento</h3>
+                  <h3 className="font-semibold mb-2">Payment Information</h3>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    <p><strong>Metodo:</strong> {selectedOrder.payment_method}</p>
-                    <p><strong>Totale:</strong> {formatAmount(selectedOrder.total_amount)}</p>
+                    <p><strong>Method:</strong> {selectedOrder.payment_method}</p>
+                    <p><strong>Total:</strong> {formatAmount(selectedOrder.total_amount)}</p>
                     {selectedOrder.discount_applied && parseFloat(selectedOrder.discount_applied) > 0 && (
-                      <p><strong>Sconto Applicato:</strong> €{parseFloat(selectedOrder.discount_applied).toFixed(2)}</p>
+                      <p><strong>Discount Applied:</strong> €{parseFloat(selectedOrder.discount_applied).toFixed(2)}</p>
                     )}
                     {selectedOrder.transaction_hash && (
                       <p><strong>Transaction ID:</strong> {selectedOrder.transaction_hash}</p>
                     )}
                     {selectedOrder.card_last4 && (
-                      <p><strong>Carta:</strong> **** **** **** {selectedOrder.card_last4} ({selectedOrder.card_brand})</p>
+                      <p><strong>Card:</strong> **** **** **** {selectedOrder.card_last4} ({selectedOrder.card_brand})</p>
                     )}
                   </div>
                 </div>
