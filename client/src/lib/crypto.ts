@@ -55,7 +55,7 @@ export function calculateMetaMaskDiscount(originalAmount: number): PaymentDetail
 
 export async function connectWallet(): Promise<WalletConnection> {
   if (!window.ethereum) {
-    throw new Error("MetaMask is not installed");
+    throw new Error("MetaMask non è installato. Installalo per continuare.");
   }
 
   try {
@@ -65,11 +65,12 @@ export async function connectWallet(): Promise<WalletConnection> {
     });
 
     if (!accounts || accounts.length === 0) {
-      throw new Error("No accounts found");
+      throw new Error("Nessun account trovato");
     }
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
+    const address = await signer.getAddress();
 
     // Check if we're on Base mainnet
     const network = await provider.getNetwork();
@@ -105,7 +106,7 @@ export async function connectWallet(): Promise<WalletConnection> {
     }
 
     return {
-      address: accounts[0],
+      address,
       provider,
       signer,
     };

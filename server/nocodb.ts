@@ -11,15 +11,23 @@ export class NocoDBClient {
   };
 
   constructor() {
-    this.baseURL = process.env.NOCODB_BASE_URL || 'https://app.nocodb.com';
+    // Extract base URL from the full URL if needed
+    const fullURL = process.env.NOCODB_BASE_URL || 'https://app.nocodb.com';
+    this.baseURL = fullURL.includes('/#/') ? fullURL.split('/#/')[0] : fullURL;
     this.token = process.env.NOCODB_TOKEN || 'zmmPNUaA7kWsxmOa6PHMAPM7aRqmft5rfEWrceir';
     this.projectId = 'pf5ksg4e5zqgn89';
     this.tableIds = {
       menu: 'mmrv37h1hbu2hl6',
       extras: 'mk1ufwpu8salnvx',
       orders: 'mcgorx1a6qxkfsp',
-      categories: 'categories' // Will need to be updated with actual table ID
+      categories: 'mhzfcqmgq9kbj3c'
     };
+    
+    console.log('NocoDB Configuration:', {
+      baseURL: this.baseURL,
+      tokenPrefix: this.token.substring(0, 10) + '...',
+      projectId: this.projectId
+    });
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
@@ -33,6 +41,8 @@ export class NocoDBClient {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`NocoDB API error: ${response.status} - ${errorText}`);
       throw new Error(`NocoDB API error: ${response.status} ${response.statusText}`);
     }
 
@@ -41,40 +51,43 @@ export class NocoDBClient {
 
   async getMenuItems() {
     try {
-      const response = await this.request(`/api/v2/tables/${this.projectId}/${this.tableIds.menu}/records`);
+      const endpoint = `/api/v2/tables/${this.tableIds.menu}/records`;
+      console.log('NocoDB Menu endpoint:', `${this.baseURL}${endpoint}`);
+      const response = await this.request(endpoint);
       return response.list || response;
     } catch (error) {
       console.error('Error fetching menu items from NocoDB:', error);
-      // Fallback to local storage for development
       throw error;
     }
   }
 
   async getCategories() {
     try {
-      const response = await this.request(`/api/v2/tables/${this.projectId}/${this.tableIds.categories}/records`);
+      const endpoint = `/api/v2/tables/${this.tableIds.categories}/records`;
+      console.log('NocoDB Categories endpoint:', `${this.baseURL}${endpoint}`);
+      const response = await this.request(endpoint);
       return response.list || response;
     } catch (error) {
       console.error('Error fetching categories from NocoDB:', error);
-      // Fallback to local storage for development
       throw error;
     }
   }
 
   async getExtras() {
     try {
-      const response = await this.request(`/api/v2/tables/${this.projectId}/${this.tableIds.extras}/records`);
+      const endpoint = `/api/v2/tables/${this.tableIds.extras}/records`;
+      console.log('NocoDB Extras endpoint:', `${this.baseURL}${endpoint}`);
+      const response = await this.request(endpoint);
       return response.list || response;
     } catch (error) {
       console.error('Error fetching extras from NocoDB:', error);
-      // Fallback to local storage for development
       throw error;
     }
   }
 
   async createOrder(orderData: any) {
     try {
-      const response = await this.request(`/api/v2/tables/${this.projectId}/${this.tableIds.orders}/records`, {
+      const response = await this.request(`/api/v2/tables/${this.tableIds.orders}/records`, {
         method: 'POST',
         body: JSON.stringify(orderData),
       });
@@ -87,7 +100,7 @@ export class NocoDBClient {
 
   async updateOrder(orderId: number, updates: any) {
     try {
-      const response = await this.request(`/api/v2/tables/${this.projectId}/${this.tableIds.orders}/records/${orderId}`, {
+      const response = await this.request(`/api/v2/tables/${this.tableIds.orders}/records/${orderId}`, {
         method: 'PATCH',
         body: JSON.stringify(updates),
       });

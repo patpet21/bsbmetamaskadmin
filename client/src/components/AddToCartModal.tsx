@@ -96,7 +96,35 @@ export default function AddToCartModal({ item, extras, isOpen, onClose }: AddToC
               Extras
             </label>
             <div className="space-y-3 max-h-48 overflow-y-auto">
-              {extras.map((extra) => (
+              {extras.filter(extra => {
+                // Filter extras based on category compatibility
+                const categoryCompatibility = {
+                  1: [1, 2, 3], // Pizza can have cheese, meat, veggie extras
+                  2: [1, 2, 3], // Pasta can have cheese, meat, veggie extras  
+                  3: [4, 5],    // Dolci can have sweet extras only (no sandwich/pasta extras)
+                  4: [1, 2, 3], // Antipasti can have cheese, meat, veggie extras
+                };
+                
+                const itemCategoryId = item.category_id;
+                const compatibleCategories = categoryCompatibility[itemCategoryId] || [];
+                
+                // For dolci (desserts), only show dessert-specific extras
+                if (itemCategoryId === 3) {
+                  return extra.name && (
+                    extra.name.toLowerCase().includes('cioccolato') ||
+                    extra.name.toLowerCase().includes('panna') ||
+                    extra.name.toLowerCase().includes('gelato') ||
+                    extra.name.toLowerCase().includes('frutti') ||
+                    extra.name.toLowerCase().includes('crema') ||
+                    extra.name.toLowerCase().includes('nocciola') ||
+                    extra.name.toLowerCase().includes('amaretto') ||
+                    extra.category_id === 4 || 
+                    extra.category_id === 5
+                  );
+                }
+                
+                return compatibleCategories.includes(extra.category_id || 1);
+              }).map((extra) => (
                 <div key={extra.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Checkbox
