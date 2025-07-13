@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "./contexts/CartContext";
 import MenuPage from "./pages/Menu";
+import AdminPage from "./pages/Admin";
 import NotFound from "@/pages/not-found";
 import { WagmiProvider } from 'wagmi';
 import { createConfig, http } from 'wagmi';
@@ -26,6 +27,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={MenuPage} />
+      <Route path="/admin" component={AdminPage} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Wallet } from 'lucide-react';
+import { ShoppingCart, Wallet, Settings } from 'lucide-react';
+import { Link } from 'wouter';
 import { useConnect, useAccount, useDisconnect } from 'wagmi';
 import { metaMask } from 'wagmi/connectors';
 
@@ -42,6 +43,15 @@ export default function Header({ onOpenCart, onConnectWallet, isWalletConnected,
             <span className="ml-2 text-sm text-gray-500">Authentic Italian Cuisine</span>
           </div>
           <div className="flex items-center space-x-4">
+            <Link href="/admin">
+              <Button
+                variant="outline"
+                className="text-gray-700 hover:bg-gray-100"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            </Link>
             <Button
               onClick={onOpenCart}
               className="relative bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]"

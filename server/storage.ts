@@ -4,15 +4,21 @@ export interface IStorage {
   // Categories
   getCategories(): Promise<Category[]>;
   createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: number, updates: Partial<Category>): Promise<Category>;
+  deleteCategory(id: number): Promise<void>;
   
   // Menu
   getMenuItems(): Promise<Menu[]>;
   getMenuItemsByCategory(categoryId: number): Promise<Menu[]>;
   createMenuItem(item: InsertMenu): Promise<Menu>;
+  updateMenuItem(id: number, updates: Partial<Menu>): Promise<Menu>;
+  deleteMenuItem(id: number): Promise<void>;
   
   // Extras
   getExtras(): Promise<Extra[]>;
   createExtra(extra: InsertExtra): Promise<Extra>;
+  updateExtra(id: number, updates: Partial<Extra>): Promise<Extra>;
+  deleteExtra(id: number): Promise<void>;
   
   // Orders
   getOrders(): Promise<Order[]>;
@@ -110,6 +116,23 @@ export class MemStorage implements IStorage {
     return newCategory;
   }
 
+  async updateCategory(id: number, updates: Partial<Category>): Promise<Category> {
+    const existingCategory = this.categories.get(id);
+    if (!existingCategory) {
+      throw new Error(`Category with id ${id} not found`);
+    }
+    const updatedCategory = { ...existingCategory, ...updates };
+    this.categories.set(id, updatedCategory);
+    return updatedCategory;
+  }
+
+  async deleteCategory(id: number): Promise<void> {
+    if (!this.categories.has(id)) {
+      throw new Error(`Category with id ${id} not found`);
+    }
+    this.categories.delete(id);
+  }
+
   async getMenuItems(): Promise<Menu[]> {
     return Array.from(this.menuItems.values());
   }
@@ -125,6 +148,23 @@ export class MemStorage implements IStorage {
     return newItem;
   }
 
+  async updateMenuItem(id: number, updates: Partial<Menu>): Promise<Menu> {
+    const existingItem = this.menuItems.get(id);
+    if (!existingItem) {
+      throw new Error(`Menu item with id ${id} not found`);
+    }
+    const updatedItem = { ...existingItem, ...updates };
+    this.menuItems.set(id, updatedItem);
+    return updatedItem;
+  }
+
+  async deleteMenuItem(id: number): Promise<void> {
+    if (!this.menuItems.has(id)) {
+      throw new Error(`Menu item with id ${id} not found`);
+    }
+    this.menuItems.delete(id);
+  }
+
   async getExtras(): Promise<Extra[]> {
     return Array.from(this.extras.values());
   }
@@ -134,6 +174,23 @@ export class MemStorage implements IStorage {
     const newExtra: Extra = { ...extra, id };
     this.extras.set(id, newExtra);
     return newExtra;
+  }
+
+  async updateExtra(id: number, updates: Partial<Extra>): Promise<Extra> {
+    const existingExtra = this.extras.get(id);
+    if (!existingExtra) {
+      throw new Error(`Extra with id ${id} not found`);
+    }
+    const updatedExtra = { ...existingExtra, ...updates };
+    this.extras.set(id, updatedExtra);
+    return updatedExtra;
+  }
+
+  async deleteExtra(id: number): Promise<void> {
+    if (!this.extras.has(id)) {
+      throw new Error(`Extra with id ${id} not found`);
+    }
+    this.extras.delete(id);
   }
 
   async getOrders(): Promise<Order[]> {

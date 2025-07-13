@@ -26,6 +26,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/categories", async (req, res) => {
+    try {
+      const newCategory = await storage.createCategory(req.body);
+      res.json(newCategory);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/categories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const updatedCategory = await storage.updateCategory(id, updates);
+      res.json(updatedCategory);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/categories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCategory(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Menu items
   app.get("/api/menu", async (req, res) => {
     try {
@@ -59,6 +89,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Menu item admin routes
+  app.post("/api/menu", async (req, res) => {
+    try {
+      const menuData = req.body;
+      // Convert category_id to number if it's a string
+      if (menuData.category_id) {
+        menuData.category_id = parseInt(menuData.category_id);
+      }
+      const newMenuItem = await storage.createMenuItem(menuData);
+      res.json(newMenuItem);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/menu/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      // Convert category_id to number if it's a string
+      if (updates.category_id) {
+        updates.category_id = parseInt(updates.category_id);
+      }
+      const updatedMenuItem = await storage.updateMenuItem(id, updates);
+      res.json(updatedMenuItem);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/menu/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteMenuItem(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Extras
   app.get("/api/extras", async (req, res) => {
     try {
@@ -77,6 +147,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching extras:", error);
       res.status(500).json({ error: "Failed to fetch extras" });
+    }
+  });
+
+  // Extras admin routes
+  app.post("/api/extras", async (req, res) => {
+    try {
+      const newExtra = await storage.createExtra(req.body);
+      res.json(newExtra);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/extras/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const updatedExtra = await storage.updateExtra(id, updates);
+      res.json(updatedExtra);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/extras/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteExtra(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
   });
 
