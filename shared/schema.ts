@@ -32,13 +32,13 @@ export const orders = pgTable("orders", {
   customer_phone: text("customer_phone"),
   delivery_address: text("delivery_address").notNull(),
   menu_items: text("menu_items").notNull(), // JSON string
-  total_amount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  total_amount: text("total_amount").notNull(),
   payment_method: text("payment_method").default("crypto"), // "crypto" or "card"
   transaction_hash: text("transaction_hash"),
   payment_token: text("payment_token"), // For crypto: "PRDX" or "USDC"
   card_last4: text("card_last4"), // Last 4 digits of card
   card_brand: text("card_brand"), // visa, mastercard, etc.
-  discount_applied: decimal("discount_applied", { precision: 10, scale: 2 }).default("0"),
+  discount_applied: text("discount_applied").default("0"),
   status: text("status").default("pending"),
   created_at: timestamp("created_at").defaultNow(),
 });

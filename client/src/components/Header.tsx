@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ShoppingCart, Wallet, Settings } from 'lucide-react';
 import { Link } from 'wouter';
-import { useConnect, useAccount, useDisconnect } from 'wagmi';
-import { metaMask } from 'wagmi/connectors';
+import WalletCard from './WalletCard';
 
 interface HeaderProps {
   onOpenCart: () => void;
@@ -13,26 +13,12 @@ interface HeaderProps {
   walletAddress?: string;
 }
 
+const onDisconnectWallet = () => {
+  // Disconnection logic handled by wallet card
+};
+
 export default function Header({ onOpenCart, onConnectWallet, isWalletConnected, walletAddress }: HeaderProps) {
   const { state } = useCart();
-  const { connect, connectors, error, isLoading } = useConnect();
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  const handleWalletConnect = () => {
-    if (isConnected) {
-      disconnect();
-    } else {
-      const metaMaskConnector = connectors.find(c => c.id === 'metaMask');
-      if (metaMaskConnector) {
-        connect({ connector: metaMaskConnector });
-      }
-    }
-  };
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -54,21 +40,30 @@ export default function Header({ onOpenCart, onConnectWallet, isWalletConnected,
             </Link>
             <Button
               onClick={onOpenCart}
-              className="relative bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]"
+              className="relative bg-orange-500 text-white hover:bg-orange-600"
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
-              Cart ({state.totalItems})
+              Carrello ({state.totalItems})
             </Button>
-            <Button
-              onClick={handleWalletConnect}
-              variant="outline"
-              className="text-gray-700 hover:bg-gray-100"
-              disabled={isLoading}
-            >
-              <Wallet className="w-4 h-4 mr-2" />
-              {isLoading ? 'Connecting...' : 
-               isConnected ? formatAddress(address || '') : 'Connect MetaMask'}
-            </Button>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="text-gray-700 hover:bg-gray-100"
+                >
+                  <Wallet className="w-4 h-4 mr-2" />
+                  {isWalletConnected ? `${walletAddress?.slice(0, 6)}...${walletAddress?.slice(-4)}` : "Wallet"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" side="bottom" align="end">
+                <WalletCard 
+                  walletAddress={walletAddress || ""}
+                  onConnect={onConnectWallet}
+                  onDisconnect={onDisconnectWallet}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>

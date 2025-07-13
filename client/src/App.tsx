@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "./contexts/CartContext";
 import MenuPage from "./pages/Menu";
 import AdminPage from "./pages/Admin";
+import OrdersAdmin from "./pages/OrdersAdmin";
 import NotFound from "@/pages/not-found";
 import { WagmiProvider } from 'wagmi';
 import { createConfig, http } from 'wagmi';
@@ -28,6 +29,7 @@ function Router() {
     <Switch>
       <Route path="/" component={MenuPage} />
       <Route path="/admin" component={AdminPage} />
+      <Route path="/centro-controllo-sicilia-2025" component={OrdersAdmin} />
       <Route component={NotFound} />
     </Switch>
   );

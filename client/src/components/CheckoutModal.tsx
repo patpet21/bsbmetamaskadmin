@@ -92,7 +92,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
         customer_phone: formData.phone,
         delivery_address: formData.address,
         menu_items: JSON.stringify(state.items),
-        total_amount: state.total,
+        total_amount: state.total.toString(),
         payment_method: paymentMethod.type,
         status: 'pending'
       };
@@ -114,7 +114,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
         orderData.transaction_hash = txHash;
         orderData.payment_token = selectedPayment;
         orderData.discount_applied = paymentDetails?.discountAmount || 0;
-        orderData.total_amount = finalAmount;
+        orderData.total_amount = finalAmount.toString();
         orderData.status = 'completed';
         
       } else if (paymentMethod.type === 'card') {
