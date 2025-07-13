@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Wallet } from 'lucide-react';
+import { useConnect, useAccount, useDisconnect } from 'wagmi';
+import { metaMask } from 'wagmi/connectors';
 
 interface HeaderProps {
   onOpenCart: () => void;
@@ -12,9 +14,23 @@ interface HeaderProps {
 
 export default function Header({ onOpenCart, onConnectWallet, isWalletConnected, walletAddress }: HeaderProps) {
   const { state } = useCart();
+  const { connect, connectors, error, isLoading } = useConnect();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const handleWalletConnect = () => {
+    if (isConnected) {
+      disconnect();
+    } else {
+      const metaMaskConnector = connectors.find(c => c.id === 'metaMask');
+      if (metaMaskConnector) {
+        connect({ connector: metaMaskConnector });
+      }
+    }
   };
 
   return (
@@ -34,12 +50,14 @@ export default function Header({ onOpenCart, onConnectWallet, isWalletConnected,
               Cart ({state.totalItems})
             </Button>
             <Button
-              onClick={onConnectWallet}
+              onClick={handleWalletConnect}
               variant="outline"
               className="text-gray-700 hover:bg-gray-100"
+              disabled={isLoading}
             >
               <Wallet className="w-4 h-4 mr-2" />
-              {isWalletConnected ? formatAddress(walletAddress || '') : 'Connect Wallet'}
+              {isLoading ? 'Connecting...' : 
+               isConnected ? formatAddress(address || '') : 'Connect MetaMask'}
             </Button>
           </div>
         </div>

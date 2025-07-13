@@ -10,6 +10,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal';
 import { connectWallet, type WalletConnection } from '../lib/crypto';
 import { useToast } from '@/hooks/use-toast';
 import type { Menu, Category, Extra } from '@shared/schema';
+import { useAccount } from 'wagmi';
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -26,6 +27,7 @@ export default function MenuPage() {
   } | null>(null);
   
   const { toast } = useToast();
+  const { address, isConnected } = useAccount();
 
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
@@ -97,8 +99,8 @@ export default function MenuPage() {
       <Header
         onOpenCart={() => setIsCartOpen(true)}
         onConnectWallet={handleConnectWallet}
-        isWalletConnected={!!walletConnection}
-        walletAddress={walletConnection?.address}
+        isWalletConnected={isConnected}
+        walletAddress={address}
       />
       
       <CategoryTabs

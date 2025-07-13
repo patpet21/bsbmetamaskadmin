@@ -6,6 +6,21 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "./contexts/CartContext";
 import MenuPage from "./pages/Menu";
 import NotFound from "@/pages/not-found";
+import { WagmiProvider } from 'wagmi';
+import { createConfig, http } from 'wagmi';
+import { base } from 'wagmi/chains';
+import { metaMask } from 'wagmi/connectors';
+import { QueryClient } from '@tanstack/react-query';
+
+const wagmiConfig = createConfig({
+  chains: [base],
+  connectors: [metaMask()],
+  transports: {
+    [base.id]: http(),
+  },
+});
+
+const wagmiQueryClient = new QueryClient();
 
 function Router() {
   return (
@@ -18,14 +33,16 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </CartProvider>
-    </QueryClientProvider>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <CartProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </CartProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
 
