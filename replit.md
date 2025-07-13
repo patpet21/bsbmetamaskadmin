@@ -2,7 +2,7 @@
 
 ## Overview
 
-Best Sicily Bottega is a full-stack food delivery web application similar to Uber Eats, featuring an authentic Italian restaurant experience. The application allows customers to browse menu items by category, add items to their cart with customizable extras, and complete orders using cryptocurrency payments (PRDX and USDC on Base mainnet).
+Best Sicily Bottega is a full-stack food delivery web application similar to Uber Eats, featuring an authentic Italian restaurant experience. The application allows customers to browse menu items by category, add items to their cart with customizable extras, and complete orders using cryptocurrency payments (PRDX and USDC on Base mainnet). The app now features a 10% MetaMask discount for crypto payments and integrates with NocoDB for data persistence.
 
 ## User Preferences
 
@@ -45,7 +45,8 @@ The application uses a relational database with four main tables:
 
 ### Backend Components
 - **Route Handlers**: Express routes for categories, menu items, extras, and orders
-- **Storage Layer**: Abstracted storage interface supporting both in-memory and database operations
+- **Storage Layer**: Abstracted storage interface supporting both in-memory and NocoDB operations
+- **NocoDB Integration**: Real-time data synchronization with NocoDB v2 API
 - **Database Models**: Drizzle schema definitions with proper relationships
 - **Validation**: Zod schemas for API request validation
 
@@ -65,6 +66,8 @@ The application uses a relational database with four main tables:
 - **Supported Tokens**: PRDX and USDC
 - **Wallet**: MetaMask integration using ethers.js
 - **Payment Flow**: Direct token transfers to a designated recipient address
+- **MetaMask Discount**: 10% automatic discount applied for crypto payments
+- **Payment Calculation**: Dynamic discount calculation with transparent pricing display
 
 ### UI/UX Libraries
 - **Component Library**: Radix UI primitives with shadcn/ui styling
@@ -80,9 +83,10 @@ The application uses a relational database with four main tables:
 ## Deployment Strategy
 
 ### Development Environment
-- **Database**: In-memory storage for rapid development
+- **Database**: Dual-mode storage (NocoDB + in-memory fallback)
 - **Server**: Express development server with hot reload
 - **Client**: Vite development server with proxy to backend API
+- **NocoDB Integration**: Real-time synchronization with external NocoDB instance
 
 ### Production Considerations
 - **Database**: PostgreSQL with Drizzle ORM migrations
@@ -96,3 +100,13 @@ The application uses a relational database with four main tables:
 - **Database Setup**: `drizzle-kit push` applies schema changes
 
 The application is structured as a monorepo with shared types and schemas, enabling type safety across the full stack while maintaining clear separation between client and server code.
+
+## Recent Changes
+
+### January 2025
+- **NocoDB Integration**: Added support for NocoDB v2 API with project ID `pf5ksg4e5zqgn89`
+- **MetaMask Discount System**: Implemented 10% automatic discount for crypto payments
+- **Payment Enhancement**: Added transparent pricing display with subtotal, discount, and final total
+- **Fallback Architecture**: Dual-mode storage system (NocoDB primary, in-memory fallback)
+- **Order Management**: Enhanced order creation with menu items, extras, and payment method tracking
+- **Error Handling**: Improved error handling for NocoDB API failures with graceful fallbacks

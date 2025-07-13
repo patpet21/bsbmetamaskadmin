@@ -1,4 +1,4 @@
-// NocoDB API client with v2 endpoints
+// Server-side NocoDB API client
 export class NocoDBClient {
   private baseURL: string;
   private token: string;
@@ -11,8 +11,8 @@ export class NocoDBClient {
   };
 
   constructor() {
-    this.baseURL = import.meta.env.VITE_NOCODB_BASE_URL || 'https://app.nocodb.com';
-    this.token = import.meta.env.VITE_NOCODB_TOKEN || 'zmmPNUaA7kWsxmOa6PHMAPM7aRqmft5rfEWrceir';
+    this.baseURL = process.env.NOCODB_BASE_URL || 'https://app.nocodb.com';
+    this.token = process.env.NOCODB_TOKEN || 'zmmPNUaA7kWsxmOa6PHMAPM7aRqmft5rfEWrceir';
     this.projectId = 'pf5ksg4e5zqgn89';
     this.tableIds = {
       menu: 'mmrv37h1hbu2hl6',
@@ -46,7 +46,7 @@ export class NocoDBClient {
     } catch (error) {
       console.error('Error fetching menu items from NocoDB:', error);
       // Fallback to local storage for development
-      return [];
+      throw error;
     }
   }
 
@@ -57,7 +57,7 @@ export class NocoDBClient {
     } catch (error) {
       console.error('Error fetching categories from NocoDB:', error);
       // Fallback to local storage for development
-      return [];
+      throw error;
     }
   }
 
@@ -68,7 +68,7 @@ export class NocoDBClient {
     } catch (error) {
       console.error('Error fetching extras from NocoDB:', error);
       // Fallback to local storage for development
-      return [];
+      throw error;
     }
   }
 

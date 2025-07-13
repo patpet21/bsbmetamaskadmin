@@ -9,6 +9,7 @@ interface OrderConfirmationModalProps {
   orderId: string;
   txHash: string;
   total: number;
+  discountApplied?: number;
 }
 
 export default function OrderConfirmationModal({ 
@@ -16,7 +17,8 @@ export default function OrderConfirmationModal({
   onClose, 
   orderId, 
   txHash, 
-  total 
+  total,
+  discountApplied = 0
 }: OrderConfirmationModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -51,6 +53,14 @@ export default function OrderConfirmationModal({
                 ${total.toFixed(2)}
               </span>
             </div>
+            {discountApplied > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Discount Applied:</span>
+                <span className="font-semibold text-green-600">
+                  {discountApplied}%
+                </span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-gray-600">Status:</span>
               <span className="text-green-600 font-semibold">Confirmed</span>

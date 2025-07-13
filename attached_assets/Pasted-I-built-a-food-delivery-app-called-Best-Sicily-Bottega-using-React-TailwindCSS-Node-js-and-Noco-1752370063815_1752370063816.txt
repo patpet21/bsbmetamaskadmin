@@ -1,0 +1,25 @@
+I built a food delivery app called "Best Sicily Bottega" using React, TailwindCSS, Node.js, and NocoDB. The app is mostly functional, but the NocoDB integration is failing with an HTTP 404 error ("Cannot GET /api/v2/tables/..."). I also want to add MetaMask payment support for PRDX and USDC on Base Mainnet, with a 10% discount on the total order for users paying via MetaMask. After payment, the order data must be saved in the NocoDB Orders table.
+
+Please do the following:
+
+1. **Fix the NocoDB integration**:
+   - Use the correct NocoDB v2 API endpoint: `/api/v2/tables/<project_id>/<table_id>`.
+   - Project ID: `pf5ksg4e5zqgn89`
+   - Table IDs: Menu (`mmrv37h1hbu2hl6`), Extras (`mk1ufwpu8salnvx`), Orders (`mcgorx1a6qxkfsp`)
+   - API Token: `zmmPNUaA7kWsxmOa6PHMAPM7aRqmft5rfEWrceir` (verify if valid; if not, I'll generate a new one).
+   - Ensure the `getMenu` function retrieves menu data with associated extras via the many-to-many relationship.
+
+2. **Add MetaMask payment support**:
+   - Use `wagmi` and `viem` to connect MetaMask and handle payments in PRDX (`0x61dd008f1582631aa68645ff92a1a5ecaedbed19`, 18 decimals) and USDC (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, 6 decimals) on Base Mainnet.
+   - Recipient address: `0x7fDECF16574bd21Fd5cce60B701D01A6F83826ab`.
+   - Apply a 10% discount on the total order if payment is made via MetaMask.
+   - After payment, save the order in the NocoDB Orders table, including `tx_id`, `total` (with discount), `menu_items`, `extras`, and other required fields.
+
+3. **Preserve existing functionality**:
+   - Do not break the existing menu logic (grouping by categories, extras modal, etc.).
+   - Do not break the existing payment logic but extend it to support the 10% discount.
+
+4. **Handle browser extension errors**:
+   - Ignore errors like `Attempting to use a disconnected port object` (from extensions like TronLink). Recommend testing in Incognito mode or disabling extensions.
+
+I will provide updated code for `services/nocodb.ts` and a React component for MetaMask payments. Please apply these changes and verify that extras appear correctly in the menu modal and that MetaMask payments work with the 10% discount.

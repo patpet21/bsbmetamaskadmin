@@ -17,6 +17,9 @@ export const RECIPIENT_ADDRESS = '0x7fDECF16574bd21Fd5cce60B701D01A6F83826ab';
 
 export const BASE_CHAIN_ID = 8453;
 
+// MetaMask discount configuration
+export const METAMASK_DISCOUNT_PERCENTAGE = 10; // 10% discount
+
 // ERC20 ABI for token transfers
 const ERC20_ABI = [
   "function transfer(address to, uint256 amount) returns (bool)",
@@ -29,6 +32,25 @@ export interface WalletConnection {
   address: string;
   provider: ethers.BrowserProvider;
   signer: ethers.JsonRpcSigner;
+}
+
+export interface PaymentDetails {
+  originalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  discountPercentage: number;
+}
+
+export function calculateMetaMaskDiscount(originalAmount: number): PaymentDetails {
+  const discountAmount = (originalAmount * METAMASK_DISCOUNT_PERCENTAGE) / 100;
+  const finalAmount = originalAmount - discountAmount;
+  
+  return {
+    originalAmount,
+    discountAmount,
+    finalAmount,
+    discountPercentage: METAMASK_DISCOUNT_PERCENTAGE,
+  };
 }
 
 export async function connectWallet(): Promise<WalletConnection> {
@@ -96,7 +118,8 @@ export async function connectWallet(): Promise<WalletConnection> {
 export async function sendTokenPayment(
   connection: WalletConnection,
   tokenSymbol: "PRDX" | "USDC",
-  amountUSD: number
+  amountUSD: number,
+  applyDiscount: boolean = true
 ): Promise<string> {
   const token = tokenSymbol === "PRDX" ? PRDX_TOKEN : USDC_TOKEN;
   
@@ -107,10 +130,15 @@ export async function sendTokenPayment(
       connection.signer
     );
 
+    // Apply MetaMask discount if enabled
+    const finalAmount = applyDiscount ? 
+      calculateMetaMaskDiscount(amountUSD).finalAmount : 
+      amountUSD;
+
     // Convert USD amount to token amount based on decimals
     // Note: In a real app, you'd need to get the current token/USD rate
     // For this demo, we'll assume 1 token = 1 USD for simplicity
-    const tokenAmount = ethers.parseUnits(amountUSD.toString(), token.decimals);
+    const tokenAmount = ethers.parseUnits(finalAmount.toString(), token.decimals);
 
     // Check balance
     const balance = await tokenContract.balanceOf(connection.address);

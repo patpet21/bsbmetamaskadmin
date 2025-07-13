@@ -7,13 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Coins, DollarSign, Wallet, CreditCard } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { connectWallet, sendTokenPayment, type WalletConnection } from '../lib/crypto';
+import { connectWallet, sendTokenPayment, calculateMetaMaskDiscount, type WalletConnection, type PaymentDetails } from '../lib/crypto';
 import { useToast } from '@/hooks/use-toast';
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOrderComplete: (orderId: string, txHash: string) => void;
+  onOrderComplete: (orderId: string, txHash: string, total: number, discountApplied?: number) => void;
 }
 
 export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: CheckoutModalProps) {
@@ -27,6 +27,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
   const [selectedPayment, setSelectedPayment] = useState<'PRDX' | 'USDC' | null>(null);
   const [walletConnection, setWalletConnection] = useState<WalletConnection | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
   
   const { state, clearCart } = useCart();
   const { toast } = useToast();
@@ -40,9 +41,12 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
     try {
       const connection = await connectWallet();
       setWalletConnection(connection);
+      // Calculate MetaMask discount
+      const discount = calculateMetaMaskDiscount(state.total);
+      setPaymentDetails(discount);
       toast({
         title: "Wallet Connected",
-        description: "Your MetaMask wallet has been connected successfully.",
+        description: `MetaMask connected! You'll get a ${discount.discountPercentage}% discount on your order.`,
       });
     } catch (error) {
       toast({
@@ -75,6 +79,9 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
     setIsProcessing(true);
 
     try {
+      // Calculate final amount with MetaMask discount
+      const finalAmount = paymentDetails ? paymentDetails.finalAmount : state.total;
+      
       // Create order first
       const orderData = {
         name: formData.name,
@@ -83,7 +90,23 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
         note: formData.note,
         status: 'pending',
         paid: false,
-        total: state.total.toFixed(2),
+        total: finalAmount.toFixed(2),
+        menu_items: state.items.map(item => ({
+          id: item.menuItem.id,
+          name: item.menuItem.name,
+          quantity: item.quantity,
+          price: item.menuItem.price
+        })),
+        extras: state.items.flatMap(item => 
+          item.extras.map(extra => ({
+            id: extra.id,
+            name: extra.name,
+            price: extra.price
+          }))
+        ),
+        payment_method: selectedPayment,
+        discount_applied: paymentDetails ? paymentDetails.discountPercentage : 0,
+        original_total: state.total.toFixed(2),
       };
 
       const orderResponse = await fetch('/api/orders', {
@@ -100,11 +123,12 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
 
       const order = await orderResponse.json();
 
-      // Send payment
+      // Send payment with MetaMask discount
       const txHash = await sendTokenPayment(
         walletConnection,
         selectedPayment,
-        state.total
+        state.total,
+        true // Apply MetaMask discount
       );
 
       // Update order with payment info
@@ -122,7 +146,7 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
 
       // Clear cart and show success
       clearCart();
-      onOrderComplete(order.id, txHash);
+      onOrderComplete(order.id, txHash, finalAmount, paymentDetails?.discountPercentage);
       onClose();
 
     } catch (error) {
@@ -158,9 +182,23 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
                   ))}
                 </div>
                 <div className="border-t border-gray-200 pt-2 mt-2">
+                  {paymentDetails && (
+                    <>
+                      <div className="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Subtotal:</span>
+                        <span>${paymentDetails.originalAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-green-600 mb-1">
+                        <span>MetaMask Discount ({paymentDetails.discountPercentage}%):</span>
+                        <span>-${paymentDetails.discountAmount.toFixed(2)}</span>
+                      </div>
+                    </>
+                  )}
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
-                    <span className="text-[hsl(142,71%,45%)]">${state.total.toFixed(2)}</span>
+                    <span className="text-[hsl(142,71%,45%)]">
+                      ${(paymentDetails ? paymentDetails.finalAmount : state.total).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -279,16 +317,32 @@ export default function CheckoutModal({ isOpen, onClose, onOrderComplete }: Chec
           <div>
             <div className="text-center">
               {!walletConnection ? (
-                <Button
-                  onClick={handleConnectWallet}
-                  className="bg-gray-900 text-white hover:bg-gray-800"
-                >
-                  <Wallet className="w-4 h-4 mr-2" />
-                  Connect MetaMask Wallet
-                </Button>
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <p className="text-sm text-green-800">
+                      🎉 Connect your MetaMask wallet to get a <strong>10% discount</strong> on your order!
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleConnectWallet}
+                    className="bg-gray-900 text-white hover:bg-gray-800"
+                  >
+                    <Wallet className="w-4 h-4 mr-2" />
+                    Connect MetaMask Wallet
+                  </Button>
+                </div>
               ) : (
-                <div className="text-sm text-gray-600">
-                  Connected: {walletConnection.address.slice(0, 6)}...{walletConnection.address.slice(-4)}
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-600">
+                    Connected: {walletConnection.address.slice(0, 6)}...{walletConnection.address.slice(-4)}
+                  </div>
+                  {paymentDetails && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-sm text-green-800">
+                        ✅ MetaMask discount applied! Save ${paymentDetails.discountAmount.toFixed(2)} on this order.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

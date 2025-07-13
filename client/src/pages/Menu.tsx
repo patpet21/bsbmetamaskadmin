@@ -22,6 +22,7 @@ export default function MenuPage() {
     orderId: string;
     txHash: string;
     total: number;
+    discountApplied?: number;
   } | null>(null);
   
   const { toast } = useToast();
@@ -60,11 +61,12 @@ export default function MenuPage() {
     }
   };
 
-  const handleOrderComplete = (orderId: string, txHash: string) => {
+  const handleOrderComplete = (orderId: string, txHash: string, total: number, discountApplied?: number) => {
     setOrderConfirmation({
       orderId,
       txHash,
-      total: 0, // This will be set by the cart context
+      total,
+      discountApplied,
     });
     setIsCheckoutOpen(false);
     setIsOrderConfirmationOpen(true);
@@ -206,6 +208,7 @@ export default function MenuPage() {
           orderId={orderConfirmation.orderId}
           txHash={orderConfirmation.txHash}
           total={orderConfirmation.total}
+          discountApplied={orderConfirmation.discountApplied}
         />
       )}
     </div>
